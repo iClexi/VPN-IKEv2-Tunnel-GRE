@@ -1,100 +1,94 @@
-# VPN IPSec IKEv2 con túnel GRE - Site-to-Site
+# VPN IPSec IKEv2 Tunnel GRE - Site-to-Site
 
-![Seguridad de Redes](https://img.shields.io/badge/Seguridad%20de%20Redes-P3-blue?style=for-the-badge)
-![VPN](https://img.shields.io/badge/VPN-IPSec-orange?style=for-the-badge)
-![IKEv2](https://img.shields.io/badge/IKEv2-GRE%20Tunnel-green?style=for-the-badge)
-![GNS3](https://img.shields.io/badge/GNS3-Lab-purple?style=for-the-badge)
-![Cisco](https://img.shields.io/badge/Cisco-IOS-lightgrey?style=for-the-badge)
-![Estado](https://img.shields.io/badge/Estado-Funcionando-success?style=for-the-badge)
+<p align="center">
+  <img src="https://img.shields.io/badge/Seguridad_de_Redes-P3-2ea44f?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/VPN-IPSec-blue?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/IKEv2-Tunnel_GRE-orange?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/GNS3-Cisco_IOS-1f6feb?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/Estado-Funcionando-success?style=for-the-badge" />
+</p>
 
-**Autor:** Michael Robles  
+**Estudiante:** Michael Robles  
 **Matrícula:** 20250845  
+**Asignatura:** Seguridad de Redes  
 **Práctica:** P3  
-**Repositorio:** `https://github.com/iClexi/VPN-IKEv2-Tunnel-GRE`  
-**Video demostrativo:** `PENDIENTE - agregar enlace de YouTube`  
-**Documentación técnica profesional:** [Docs/Documentacion Tecnica Profesional.pdf](Docs/Documentacion%20Tecnica%20Profesional.pdf)
+**Tipo de VPN:** Site-to-Site punto a punto con túnel GRE protegido con IPSec IKEv2
+
+## Enlaces del entregable
+
+- **Repositorio:** [https://github.com/iClexi/VPN-IKEv2-Tunnel-GRE](https://github.com/iClexi/VPN-IKEv2-Tunnel-GRE)
+- **Video demostrativo:** [https://youtu.be/TsIaxFKQsx8](https://youtu.be/TsIaxFKQsx8)
+- **Documentación técnica profesional:** [Docs/Documentacion Tecnica Profesional.pdf](Docs/Documentacion%20Tecnica%20Profesional.pdf)
 
 ---
 
-## 1. Objetivo
+## Objetivo del laboratorio
 
-Configurar una **VPN site-to-site punto a punto con túnel GRE protegido con IPSec usando IKEv2**. El propósito es permitir que la LAN A `192.168.45.0/24` y la LAN B `192.168.84.0/24` se comuniquen de forma segura a través del ISP.
+El objetivo de esta práctica es configurar una VPN **site-to-site punto a punto con túnel GRE protegido con IPSec usando IKEv2**. Esta VPN permite que la LAN A `192.168.45.0/24` se comunique con la LAN B `192.168.84.0/24` de forma segura a través del ISP.
 
-En este diseño, **GRE crea el túnel lógico** y **IPSec protege ese túnel**. IKEv2 se utiliza para negociar los parámetros de seguridad entre R1 y R2.
+GRE se encarga de crear el túnel lógico entre R1 y R2, mientras que IPSec protege ese túnel usando IKEv2 para negociar la seguridad. Por eso esta VPN se parece a una combinación entre la VPN Route-Based y la VPN IPSec tradicional.
 
 ---
 
-## 2. Topología
+## Topología
 
-![Topología](images/01_topologia.png)
+![Topología de la VPN IKEv2 Tunnel GRE](images/01_topologia.png)
 
-La topología utilizada mantiene la misma estructura base de las VPN anteriores:
+La topología está compuesta por dos sitios conectados a través de un ISP:
 
 ```text
 PC-A --- SW1 --- R1 --- ISP --- R2 --- SW2 --- PC-B
 ```
 
-| Dispositivo | Rol | Dirección principal |
-|---|---|---|
-| PC-A | Host de LAN A | 192.168.45.10/24 |
-| R1 | Gateway LAN A / Peer VPN | WAN 20.25.8.46/30 - LAN 192.168.45.1/24 |
-| ISP | Red intermedia | 20.25.8.45/30 y 20.25.8.49/30 |
-| R2 | Gateway LAN B / Peer VPN | WAN 20.25.8.50/30 - LAN 192.168.84.1/24 |
-| PC-B | Host de LAN B | 192.168.84.10/24 |
+R1 y R2 son los peers VPN. El túnel GRE se forma entre las IP WAN `20.25.8.46` y `20.25.8.50`, y se protege con IPSec usando IKEv2.
 
 ---
 
-## 3. ¿Qué es GRE sobre IPSec IKEv2?
+## Direccionamiento usado
 
-GRE significa **Generic Routing Encapsulation**. GRE permite crear un túnel lógico entre R1 y R2. Ese túnel se representa con una interfaz virtual llamada `Tunnel0`.
-
-GRE por sí solo **no cifra el tráfico**. Por eso se combina con IPSec. En esta práctica, GRE se encarga de encapsular el tráfico y IPSec se encarga de cifrarlo y protegerlo.
-
-Esta VPN se parece a las otras dos configuraciones porque combina ideas de ambas:
-
-| Tipo de VPN | Cómo selecciona el tráfico | Usa Tunnel0 | Usa GRE | Usa IPSec/IKEv2 |
-|---|---|---:|---:|---:|
-| Policy-Based | ACL + crypto map | No | No | Sí |
-| Route-Based VTI | Rutas por Tunnel0 | Sí | No | Sí |
-| GRE sobre IPSec IKEv2 | Rutas por Tunnel0 GRE | Sí | Sí | Sí |
-
-La diferencia más importante está en el modo del túnel:
-
-```cisco
-! Route-Based VTI
-tunnel mode ipsec ipv4
-
-! GRE sobre IPSec
-tunnel mode gre ip
-```
-
-En GRE sobre IPSec, primero se crea el túnel GRE y después se protege usando un perfil IPSec:
-
-```cisco
-tunnel protection ipsec profile IPSEC-PROF-IKEV2-GRE
-```
-
----
-
-## 4. Configuración de los dispositivos
-
-Las configuraciones completas están en la carpeta [`configs/`](configs/).
-
-| Dispositivo | Archivo |
+| Elemento | Dirección |
 |---|---|
-| PC-A | [`configs/PC-A.txt`](configs/PC-A.txt) |
-| PC-B | [`configs/PC-B.txt`](configs/PC-B.txt) |
-| SW1 | [`configs/SW1.txt`](configs/SW1.txt) |
-| SW2 | [`configs/SW2.txt`](configs/SW2.txt) |
-| ISP | [`configs/ISP.txt`](configs/ISP.txt) |
-| R1 | [`configs/R1.txt`](configs/R1.txt) |
-| R2 | [`configs/R2.txt`](configs/R2.txt) |
+| LAN A | 192.168.45.0/24 |
+| PC-A | 192.168.45.10/24 |
+| Gateway PC-A | 192.168.45.1 |
+| R1 WAN | 20.25.8.46/30 |
+| ISP hacia R1 | 20.25.8.45/30 |
+| ISP hacia R2 | 20.25.8.49/30 |
+| R2 WAN | 20.25.8.50/30 |
+| LAN B | 192.168.84.0/24 |
+| PC-B | 192.168.84.10/24 |
+| Gateway PC-B | 192.168.84.1 |
+| Tunnel0 R1 | 172.16.45.1/30 |
+| Tunnel0 R2 | 172.16.45.2/30 |
+| PSK IKEv2 | ITLA20250845 |
 
 ---
 
-## 5. Bloque principal de VPN en R1
+## Estructura del repositorio
 
-En R1 se configura IKEv2, IPSec y el túnel GRE. El bloque principal es el siguiente:
+```text
+VPN-IKEv2-Tunnel-GRE/
+├── README.md
+├── Docs/
+│   └── Documentacion Tecnica Profesional.pdf
+├── configs/
+│   ├── ISP.cfg
+│   ├── R1.cfg
+│   ├── R2.cfg
+│   ├── SW1.cfg
+│   ├── SW2.cfg
+│   ├── PC-A.txt
+│   └── PC-B.txt
+└── images/
+```
+
+Las configuraciones completas de cada equipo están dentro de la carpeta `configs/`.
+
+---
+
+## Configuración resumida de la VPN en R1
+
+La parte principal de la VPN está en R1. Primero se configura IKEv2, que define cómo R1 y R2 negocian la seguridad:
 
 ```cisco
 crypto ikev2 proposal PROP-IKEV2-GRE
@@ -116,14 +110,22 @@ crypto ikev2 profile PROF-IKEV2-GRE
  authentication remote pre-share
  authentication local pre-share
  keyring local KR-IKEV2-GRE
+```
 
+Luego se configura IPSec. En esta práctica se usa `mode transport` porque el túnel GRE ya encapsula el tráfico. IPSec protege el paquete GRE:
+
+```cisco
 crypto ipsec transform-set TS-IKEV2-GRE esp-aes 256 esp-sha-hmac
  mode transport
 
 crypto ipsec profile IPSEC-PROF-IKEV2-GRE
  set transform-set TS-IKEV2-GRE
  set ikev2-profile PROF-IKEV2-GRE
+```
 
+Finalmente se crea `Tunnel0`, se define como GRE y se protege con el perfil IPSec:
+
+```cisco
 interface Tunnel0
  description Tunel GRE protegido con IPSec IKEv2 hacia R2
  ip address 172.16.45.1 255.255.255.252
@@ -136,79 +138,81 @@ interface Tunnel0
 ip route 192.168.84.0 255.255.255.0 172.16.45.2
 ```
 
-La propuesta IKEv2 define los algoritmos usados para negociar seguridad: AES-256 para cifrado, SHA-256 para integridad y Diffie-Hellman grupo 14 para el intercambio seguro de claves.
+Para ver la configuración completa de R1, revisar:
 
-El keyring define al peer remoto R2 con la IP `20.25.8.50` y la clave precompartida `ITLA20250845`. El perfil IKEv2 indica cómo se autentica el peer y qué keyring se utilizará.
-
-El transform-set define cómo IPSec protegerá el tráfico GRE. En este caso se usa `mode transport`, porque GRE ya está creando el túnel. IPSec protege el paquete GRE en vez de crear otro túnel completo encima.
-
-Finalmente, la interfaz `Tunnel0` define el túnel GRE hacia R2 y aplica el perfil IPSec. La ruta estática manda el tráfico hacia la LAN B usando como next-hop la IP del túnel en R2: `172.16.45.2`.
+```text
+configs/R1.cfg
+```
 
 ---
 
-## 6. Evidencias de funcionamiento
+## Diferencia con las otras VPN
 
-### 6.1 Ping inicial de PC-A hacia PC-B
+| VPN | Cómo funciona | Diferencia principal |
+|---|---|---|
+| IKEv2 Policy-Based | Usa ACL y crypto map | La ACL decide el tráfico cifrado |
+| IKEv2 Route-Based VTI | Usa Tunnel0 con `tunnel mode ipsec ipv4` | La ruta manda el tráfico por un túnel IPSec virtual |
+| IKEv2 Tunnel GRE | Usa Tunnel0 con `tunnel mode gre ip` protegido por IPSec | GRE crea el túnel e IPSec lo cifra |
 
-![Ping inicial](images/02_ping_pca_pcb_3_packets.png)
-
-El ping desde PC-A hacia PC-B confirma que existe comunicación entre las redes `192.168.45.0/24` y `192.168.84.0/24`.
-
-### 6.2 Tunnel0 activo en R1
-
-![R1 show ip interface brief](images/03_r1_show_ip_interface_brief.png)
-
-En R1 se observa que `Tunnel0` tiene la IP `172.16.45.1` y está en estado `up/up`.
-
-### 6.3 Tunnel0 activo en R2
-
-![R2 show ip interface brief](images/04_r2_show_ip_interface_brief.png)
-
-En R2 se observa que `Tunnel0` tiene la IP `172.16.45.2` y también está en estado `up/up`.
-
-### 6.4 Detalle del túnel GRE en R1
-
-![R1 show interface Tunnel0 parte 1](images/05_r1_show_interface_tunnel0_part1.png)
-
-El comando `show interface Tunnel0` confirma que el túnel está activo y que el transporte usado es `GRE/IP`.
-
-![R1 show interface Tunnel0 parte 2](images/06_r1_show_interface_tunnel0_part2_packets.png)
-
-En la continuación se observa que los paquetes enviados por el túnel aumentan, lo cual coincide con el tráfico generado desde PC-A.
-
-### 6.5 Ruta de LAN en R2
-
-![R2 show ip route](images/07_r2_show_ip_route_192_168_84_0.png)
-
-La evidencia muestra que R2 reconoce su LAN B `192.168.84.0/24` como red directamente conectada por `GigabitEthernet0/1`. Para la comunicación completa, R2 también debe tener la ruta hacia la LAN A apuntando al túnel GRE.
-
-### 6.6 IKEv2 negociado correctamente en R2
-
-![R2 show crypto ikev2 sa](images/08_r2_show_crypto_ikev2_sa.png)
-
-El estado `READY` confirma que IKEv2 negoció correctamente entre R1 y R2.
-
-### 6.7 IPSec cifrando tráfico en R1
-
-![R1 show crypto ipsec sa 3 packets](images/09_r1_show_crypto_ipsec_sa_3_packets.png)
-
-Al inicio se observan 3 paquetes encapsulados, cifrados, decapsulados y descifrados.
-
-Luego se generaron 5 pings adicionales desde PC-A hacia PC-B:
-
-![Ping adicional](images/10_ping_pca_pcb_5_more_packets.png)
-
-Después de esos pings, los contadores de IPSec subieron a 8:
-
-![R1 show crypto ipsec sa 8 packets](images/11_r1_show_crypto_ipsec_sa_8_packets.png)
-
-Esto demuestra que IPSec está protegiendo tráfico real y que los contadores aumentan cuando cruza tráfico por la VPN.
+Esta VPN se parece a una combinación de las anteriores porque usa rutas y Tunnel0 como la Route-Based, pero también mantiene la protección IPSec/IKEv2. La diferencia es que aquí el túnel lógico es GRE, y luego ese túnel GRE se protege con IPSec.
 
 ---
 
-## 7. Comandos de verificación orientados a VPN e IPSec
+## Evidencias de funcionamiento
 
-### En R1
+### 1. Ping inicial desde PC-A hacia PC-B
+
+![Ping inicial](images/02_ping_inicial_pc_a_pc_b.png)
+
+El ping desde PC-A hacia `192.168.84.10` confirma que existe comunicación entre ambas LAN.
+
+### 2. Interfaces activas en R1 y R2
+
+![show ip interface brief R1](images/03_r1_show_ip_interface_brief.png)
+
+![show ip interface brief R2](images/04_r2_show_ip_interface_brief.png)
+
+En ambos routers se observa `Tunnel0` en estado `up/up`, lo cual confirma que el túnel lógico está activo.
+
+### 3. Detalles del túnel GRE en R1
+
+![show interface Tunnel0 parte 1](images/05_r1_show_interface_tunnel0_parte_1.png)
+
+![show interface Tunnel0 parte 2](images/06_r1_show_interface_tunnel0_parte_2.png)
+
+El comando `show interface Tunnel0` muestra que el túnel usa GRE/IP, que su source es `20.25.8.46`, su destination es `20.25.8.50` y que tiene protección IPSec con el perfil `IPSEC-PROF-IKEV2-GRE`.
+
+### 4. Ruta de LAN B en R2
+
+![show ip route en R2](images/07_r2_show_ip_route_192_168_84_0.png)
+
+Se confirma que la LAN B `192.168.84.0/24` está correctamente conectada en R2. Para validar el enrutamiento completo de la VPN también se recomienda revisar la ruta hacia la red remota en cada router.
+
+### 5. IKEv2 SA activa en R2
+
+![show crypto ikev2 sa R2](images/08_r2_show_crypto_ikev2_sa.png)
+
+El estado `READY` confirma que IKEv2 negoció correctamente entre R2 y R1.
+
+### 6. IPSec SA en R1 antes y después de generar más tráfico
+
+![show crypto ipsec sa R1 contadores 3](images/09_r1_show_crypto_ipsec_sa_contadores_3.png)
+
+Después del primer ping, los contadores de IPSec muestran paquetes cifrados y descifrados.
+
+![Ping adicional](images/10_ping_adicional_pc_a_pc_b.png)
+
+Se genera más tráfico desde PC-A hacia PC-B.
+
+![show crypto ipsec sa R1 contadores 8](images/11_r1_show_crypto_ipsec_sa_contadores_8.png)
+
+Luego de los pings adicionales, los contadores aumentan de 3 a 8. Esto demuestra que IPSec está cifrando y descifrando tráfico real.
+
+---
+
+## Comandos de verificación orientados a VPN e IPSec
+
+En R1:
 
 ```cisco
 show ip interface brief
@@ -220,7 +224,7 @@ show crypto session
 show tunnel protection
 ```
 
-### En R2
+En R2:
 
 ```cisco
 show ip interface brief
@@ -232,34 +236,16 @@ show crypto session
 show tunnel protection
 ```
 
-### En PC-A
+En PC-A:
 
 ```bash
 ping 192.168.84.10
 ```
 
-### En PC-B
+En PC-B:
 
 ```bash
 ping 192.168.45.10
 ```
 
----
-
-## 8. Resultado esperado
-
-La VPN se considera funcional cuando se cumplen estas condiciones:
-
-- `Tunnel0` aparece `up/up` en R1 y R2.
-- `show interface Tunnel0` muestra transporte `GRE/IP`.
-- `show crypto ikev2 sa` muestra estado `READY`.
-- `show crypto ipsec sa` muestra aumento en `encaps`, `encrypt`, `decaps` y `decrypt`.
-- PC-A puede hacer ping exitosamente a PC-B.
-
----
-
-## 9. Conclusión
-
-La VPN GRE sobre IPSec IKEv2 fue configurada correctamente. GRE permitió crear el túnel lógico entre R1 y R2, mientras que IPSec protegió el tráfico que cruza el túnel. IKEv2 se encargó de negociar los parámetros de seguridad y autenticar ambos extremos mediante clave precompartida.
-
-La evidencia más importante es el aumento de los contadores en `show crypto ipsec sa`, ya que confirma que el tráfico generado por los pings realmente está siendo cifrado y descifrado por IPSec.
+Lo más importante para confirmar que la VPN funciona es ver `Tunnel0 up/up`, `IKEv2 SA READY`, sesión activa, y contadores de `encaps`, `encrypt`, `decaps` y `decrypt` aumentando en `show crypto ipsec sa`.
