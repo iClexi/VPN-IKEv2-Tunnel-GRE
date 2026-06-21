@@ -18,7 +18,7 @@
 
 - **Repositorio:** [https://github.com/iClexi/VPN-IKEv2-Tunnel-GRE](https://github.com/iClexi/VPN-IKEv2-Tunnel-GRE)
 - **Video demostrativo:** [https://youtu.be/TsIaxFKQsx8](https://youtu.be/TsIaxFKQsx8)
-- **Documentación técnica profesional:** [Docs/Documentacion Tecnica Profesional.pdf](Docs/Documentacion%20Tecnica%20Profesional.pdf)
+- **Documentación técnica profesional:** [docs/Documentacion Tecnica Profesional.pdf](docs/Documentacion%20Tecnica%20Profesional.pdf)
 
 ---
 
