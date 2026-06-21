@@ -1,0 +1,23 @@
+enable
+configure terminal
+hostname SW2
+no ip domain-lookup
+
+vlan 20
+ name LAN_B
+
+interface gigabitEthernet0/0
+ description Enlace hacia R2 LAN
+ switchport mode access
+ switchport access vlan 20
+ no shutdown
+
+interface gigabitEthernet0/1
+ description Enlace hacia PC-B
+ switchport mode access
+ switchport access vlan 20
+ spanning-tree portfast
+ no shutdown
+
+end
+write memory

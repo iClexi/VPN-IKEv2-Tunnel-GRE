@@ -1,0 +1,17 @@
+enable
+configure terminal
+hostname ISP
+no ip domain-lookup
+
+interface gigabitEthernet0/0
+ description Enlace hacia R1
+ ip address 20.25.8.45 255.255.255.252
+ no shutdown
+
+interface gigabitEthernet0/1
+ description Enlace hacia R2
+ ip address 20.25.8.49 255.255.255.252
+ no shutdown
+
+end
+write memory

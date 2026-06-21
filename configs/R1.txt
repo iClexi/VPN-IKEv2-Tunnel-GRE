@@ -1,0 +1,57 @@
+enable
+configure terminal
+hostname R1
+no ip domain-lookup
+
+interface gigabitEthernet0/0
+ description WAN hacia ISP
+ ip address 20.25.8.46 255.255.255.252
+ no shutdown
+
+interface gigabitEthernet0/1
+ description LAN A hacia SW1
+ ip address 192.168.45.1 255.255.255.0
+ no shutdown
+
+ip route 0.0.0.0 0.0.0.0 20.25.8.45
+
+crypto ikev2 proposal PROP-IKEV2-GRE
+ encryption aes-cbc-256
+ integrity sha256
+ group 14
+
+crypto ikev2 policy POL-IKEV2-GRE
+ proposal PROP-IKEV2-GRE
+
+crypto ikev2 keyring KR-IKEV2-GRE
+ peer R2
+  address 20.25.8.50
+  pre-shared-key local ITLA20250845
+  pre-shared-key remote ITLA20250845
+
+crypto ikev2 profile PROF-IKEV2-GRE
+ match identity remote address 20.25.8.50 255.255.255.255
+ authentication remote pre-share
+ authentication local pre-share
+ keyring local KR-IKEV2-GRE
+
+crypto ipsec transform-set TS-IKEV2-GRE esp-aes 256 esp-sha-hmac
+ mode transport
+
+crypto ipsec profile IPSEC-PROF-IKEV2-GRE
+ set transform-set TS-IKEV2-GRE
+ set ikev2-profile PROF-IKEV2-GRE
+
+interface Tunnel0
+ description Tunel GRE protegido con IPSec IKEv2 hacia R2
+ ip address 172.16.45.1 255.255.255.252
+ tunnel source gigabitEthernet0/0
+ tunnel destination 20.25.8.50
+ tunnel mode gre ip
+ tunnel protection ipsec profile IPSEC-PROF-IKEV2-GRE
+ no shutdown
+
+ip route 192.168.84.0 255.255.255.0 172.16.45.2
+
+end
+write memory
