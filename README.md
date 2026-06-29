@@ -69,14 +69,14 @@ R1 y R2 son los peers VPN. El túnel GRE se forma entre las IP WAN `20.25.8.46` 
 ```text
 VPN-IKEv2-Tunnel-GRE/
 ├── README.md
-├── Docs/
+├── docs/
 │   └── Documentacion Tecnica Profesional.pdf
 ├── configs/
-│   ├── ISP.cfg
-│   ├── R1.cfg
-│   ├── R2.cfg
-│   ├── SW1.cfg
-│   ├── SW2.cfg
+│   ├── ISP.txt
+│   ├── R1.txt
+│   ├── R2.txt
+│   ├── SW1.txt
+│   ├── SW2.txt
 │   ├── PC-A.txt
 │   └── PC-B.txt
 └── images/
@@ -141,7 +141,7 @@ ip route 192.168.84.0 255.255.255.0 172.16.45.2
 Para ver la configuración completa de R1, revisar:
 
 ```text
-configs/R1.cfg
+configs/R1.txt
 ```
 
 ---
@@ -162,7 +162,7 @@ Esta VPN se parece a una combinación de las anteriores porque usa rutas y Tunne
 
 ### 1. Ping inicial desde PC-A hacia PC-B
 
-![Ping inicial](images/02_ping_inicial_pc_a_pc_b.png)
+![Ping inicial](images/02_ping_pca_pcb_3_packets.png)
 
 El ping desde PC-A hacia `192.168.84.10` confirma que existe comunicación entre ambas LAN.
 
@@ -176,9 +176,9 @@ En ambos routers se observa `Tunnel0` en estado `up/up`, lo cual confirma que el
 
 ### 3. Detalles del túnel GRE en R1
 
-![show interface Tunnel0 parte 1](images/05_r1_show_interface_tunnel0_parte_1.png)
+![show interface Tunnel0 parte 1](images/05_r1_show_interface_tunnel0_part1.png)
 
-![show interface Tunnel0 parte 2](images/06_r1_show_interface_tunnel0_parte_2.png)
+![show interface Tunnel0 parte 2](images/06_r1_show_interface_tunnel0_part2_packets.png)
 
 El comando `show interface Tunnel0` muestra que el túnel usa GRE/IP, que su source es `20.25.8.46`, su destination es `20.25.8.50` y que tiene protección IPSec con el perfil `IPSEC-PROF-IKEV2-GRE`.
 
@@ -196,15 +196,15 @@ El estado `READY` confirma que IKEv2 negoció correctamente entre R2 y R1.
 
 ### 6. IPSec SA en R1 antes y después de generar más tráfico
 
-![show crypto ipsec sa R1 contadores 3](images/09_r1_show_crypto_ipsec_sa_contadores_3.png)
+![show crypto ipsec sa R1 contadores 3](images/09_r1_show_crypto_ipsec_sa_3_packets.png)
 
 Después del primer ping, los contadores de IPSec muestran paquetes cifrados y descifrados.
 
-![Ping adicional](images/10_ping_adicional_pc_a_pc_b.png)
+![Ping adicional](images/10_ping_pca_pcb_5_more_packets.png)
 
 Se genera más tráfico desde PC-A hacia PC-B.
 
-![show crypto ipsec sa R1 contadores 8](images/11_r1_show_crypto_ipsec_sa_contadores_8.png)
+![show crypto ipsec sa R1 contadores 8](images/11_r1_show_crypto_ipsec_sa_8_packets.png)
 
 Luego de los pings adicionales, los contadores aumentan de 3 a 8. Esto demuestra que IPSec está cifrando y descifrando tráfico real.
 
