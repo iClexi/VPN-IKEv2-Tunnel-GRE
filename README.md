@@ -72,13 +72,6 @@ VPN-IKEv2-Tunnel-GRE/
 ├── docs/
 │   └── Documentacion Tecnica Profesional.pdf
 ├── configs/
-│   ├── ISP.txt
-│   ├── R1.txt
-│   ├── R2.txt
-│   ├── SW1.txt
-│   ├── SW2.txt
-│   ├── PC-A.txt
-│   └── PC-B.txt
 └── images/
 ```
 
@@ -136,12 +129,6 @@ interface Tunnel0
  no shutdown
 
 ip route 192.168.84.0 255.255.255.0 172.16.45.2
-```
-
-Para ver la configuración completa de R1, revisar:
-
-```text
-configs/R1.txt
 ```
 
 ---
